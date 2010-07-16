@@ -43,39 +43,16 @@ function XanReputation_SlashCommand(cmd)
 	local a,b,c=strfind(cmd, "(%S+)"); --contiguous string of non-space characters
 	
 	if a then
-		if c and c:lower() == "bg" then
-			XanReputation:BackgroundToggle()
-			return true
-		elseif c and c:lower() == "reset" then
+		if c and c:lower() == "reset" then
 			DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Frame position has been reset!");
 			XanReputation:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
 			return true
-		elseif c and c:lower() == "auto" then
-			XanREP_DB.autoSwitch = not XanREP_DB.autoSwitch
-			if XanREP_DB.autoSwitch then
-				DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Auto switching is now ON!");
-			else
-				DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Auto switching is now OFF!");
-			end
-			return true
-		elseif c and c:lower() == "scale" then
-			if b then
-				local scalenum = strsub(cmd, b+2)
-				if scalenum and scalenum ~= "" and tonumber(scalenum) then
-					XanREP_DB.scale = tonumber(scalenum)
-					XanReputation:SetScale(tonumber(scalenum))
-					DEFAULT_CHAT_FRAME:AddMessage("XanReputation: scale has been set to ["..tonumber(scalenum).."]")
-					return true
-				end
-			end
 		end
 	end
 
 	DEFAULT_CHAT_FRAME:AddMessage("XanReputation");
 	DEFAULT_CHAT_FRAME:AddMessage("/xanrep reset - resets the frame position");
-	DEFAULT_CHAT_FRAME:AddMessage("/xanrep bg - toggles the background on/off");
-	DEFAULT_CHAT_FRAME:AddMessage("/xanrep scale # - Set the scale of the XanReputation frame")
-	DEFAULT_CHAT_FRAME:AddMessage("/xanrep auto - Set to auto switch on reputation gain/loss.")
+
 end
 
 function f:CreateREP_Frame()
