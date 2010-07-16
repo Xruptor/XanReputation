@@ -299,18 +299,6 @@ function f:SetupDropDown()
 		CloseDropDownMenus()
 	end
 
-	local t = {}
-	local q = {}
-	for i = 1, GetNumFactions() do
-		local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(i)
-		if value and not isHeader then
-			table.insert(t, name)
-			q[name] = level
-		end
-	end
-
-	table.sort(t, function(a,b) return a < b end)
-
 	local dd1 = LibStub('LibXMenu-1.0'):New("XanReputation_DD", XanREP_DB)
 	dd1.initialize = function(self, lvl)
 		if lvl == 1 then
@@ -320,18 +308,48 @@ function f:SetupDropDown()
 		elseif lvl and lvl > 1 then
 			local sub = UIDROPDOWNMENU_MENU_VALUE
 			if sub == "rep" then
-				local starti = (30 * (lvl - 2)) + 1
-				local endi = (30 * (lvl - 1)) - 1
-				for i = starti, endi, 1 do
-					if not t[i] then break end
-					local status = "??"
-					if q[t[i]] then
-						status = string.format("|cFF%s%s|r", colors[q[t[i]]], levels[q[t[i]]])
+				for i = 1, GetNumFactions() do
+					local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(i)
+					if isHeader then
+						self:AddList(lvl, name, "rep2|"..name)
 					end
-					self:AddSelect(lvl, string.format("%s      (%s)", t[i], status), t[i], "factionWatched")
-					if i == endi and t[i + 1] then
-						self:AddList(lvl, "More", sub)
-						break
+				end
+			elseif strmatch(sub, "(%w+)|(.+)") == "rep2" then
+			
+				local _, cHeader = strmatch(sub, "(%w+)|(.+)") 
+				local t = {}
+				local q = {}
+
+				for i = 1, GetNumFactions() do
+					local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(i)
+					if isHeader and name == cHeader then
+						boolD = true
+					elseif isHeader and name ~= cHeader then
+						boolD = false
+					end
+					if boolD and not isHeader then
+						table.insert(t, name)
+						q[name] = level
+					end
+				end
+
+				table.sort(t, function(a,b) return a < b end)
+				
+				if #t > 0 then
+					local starti = (30 * (lvl - 3)) + 1
+					local endi = (30 * (lvl - 2)) - 1
+
+					for i = starti, endi, 1 do
+						if not t[i] then break end
+						local status = "??"
+						if q[t[i]] then
+							status = string.format("|cFF%s%s|r", colors[q[t[i]]], levels[q[t[i]]])
+						end
+						self:AddSelect(lvl, string.format("%s      (%s)", t[i], status), t[i], "factionWatched")
+						if i == endi and t[i + 1] then
+							self:AddList(lvl, "More", sub)
+							break
+						end
 					end
 				end
 			elseif sub == "settings" then
