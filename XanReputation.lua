@@ -45,6 +45,7 @@ function XanReputation_SlashCommand(cmd)
 	if a then
 		if c and c:lower() == "reset" then
 			DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Frame position has been reset!");
+			XanReputation:ClearAllPoints()
 			XanReputation:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
 			return true
 		end
