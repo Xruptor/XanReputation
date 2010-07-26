@@ -122,11 +122,17 @@ function f:CreateREP_Frame()
 				GameTooltip:SetOwner(self, "ANCHOR_NONE")
 				GameTooltip:SetPoint(self:GetTipAnchor(self))
 				GameTooltip:ClearLines()
-				
 				GameTooltip:AddLine("XanReputation")
 
-				local remainXP = maxVal - value
-				local toLevelPercent = math.floor((maxVal - value) / maxVal * 100)
+				maxVal = maxVal - minVal
+				value = value - minVal
+				local percent = ceil((value / maxVal) * 100)
+				local remainXP, toLevelPercent = 0, 0
+				
+				if percent < 100 then
+					remainXP = maxVal - value
+					toLevelPercent = ceil((maxVal - value) / maxVal * 100)
+				end
 				
 				GameTooltip:AddDoubleLine("Faction:", name, nil,nil,nil, 1,1,1)
 				GameTooltip:AddDoubleLine("Status:", string.format("|cFF%s%s|r", colors[level], levels[level]), nil,nil,nil, 1,1,1)
@@ -149,7 +155,10 @@ function f:UpdateREP_Frame()
 	if XanREP_DB.factionWatched and XanREP_DB.factionIndex and XanREP_DB.factionIndex > 0 then
 		local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(XanREP_DB.factionIndex)
 		if not isHeader and maxVal > 0 then
-			getglobal("XanReputationText"):SetText(string.format("|cFF%s%d%%|r", colors[level], value/maxVal*100))
+			maxVal = maxVal - minVal
+			value = value - minVal
+			local percent = ceil((value / maxVal) * 100)
+			getglobal("XanReputationText"):SetText(string.format("|cFF%s%d%%|r", colors[level], percent))
 			return
 		end
 	end
@@ -255,6 +264,8 @@ function f:GetFactionWatched(sSwitch, faction)
 		for i = 1, GetNumFactions() do
 			if GetFactionInfo(i) == chkFaction then
 				local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(i)
+				maxVal = maxVal - minVal
+				value = value - minVal
 				start, max, starttime = value, maxVal, GetTime()
 				XanREP_DB.factionIndex = i
 				XanREP_DB.factionWatched = name
@@ -370,7 +381,7 @@ end
 
 local factionUp = gsub(FACTION_STANDING_INCREASED:gsub("%%d", "([0-9]+)"), "%%s", "(.*)")
 local factionDown = gsub(FACTION_STANDING_DECREASED:gsub("%%d", "([0-9]+)"), "%%s", "(.*)")
-local newRep = string.gsub(FACTION_STANDING_CHANGED, "%%%d?%$?s", "(.+)")
+local repPattern = string.gsub(FACTION_STANDING_CHANGED,"%%%d?%$?s", "(.+)")
 
 function f:CHAT_MSG_COMBAT_FACTION_CHANGE(event, msg)
 
@@ -398,8 +409,6 @@ function f:CHAT_MSG_COMBAT_FACTION_CHANGE(event, msg)
 	if faction == XanREP_DB.factionWatched then f:UpdateREP_Frame() end
 	
 end
-
-local repPattern = string.gsub(FACTION_STANDING_CHANGED,"%%%d?%$?s", "(.+)")
 
 function f:CHAT_MSG_SYSTEM(event, msg)
 	if not msg or not type(msg)=="string" then return end
