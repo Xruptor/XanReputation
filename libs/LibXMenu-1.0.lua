@@ -42,7 +42,7 @@
 		
 --]]
 
-local MAJOR, MINOR = "LibXMenu-1.0", 2
+local MAJOR, MINOR = "LibXMenu-1.0", 4
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
@@ -81,7 +81,7 @@ end
 						  NOTE: Value of the database element must be a boolean value.  TRUE/FALSE. Example: db[value] = true
 	arg1				- custom database variable, if arg2 is nil then value is used as element.  Example:  arg1[value]
 	arg2				- custom database element for arg1.  Example:  arg1[arg2]
-	func				- define custom function for menu item
+	func				- override with custom function
 	bOpt				- define an optional variable to be passed to doUpdate. Example: button name or button ID.
 --]]
 
@@ -142,7 +142,7 @@ end
 	arg1				- 	REQUIRED: database variable, if arg2 then acts as primary database. Example: arg1[arg2]
 							if not arg2 then arg1 is used as an element of the database table.  Example: db[arg1]
 	arg2				- 	custom database variable, if arg1 then acts as an element in arg1 table. Example: arg1[arg2]
-	func				- define custom function for menu item
+	func				- override with custom function
 	bOpt				- define an optional variable to be passed to doUpdate. Example: button name or button ID.
 --]]
 
@@ -205,15 +205,25 @@ end
 	lvl					- menu level 1,2,3 etc...
 	text				- name of the menu item
 	value				- database element value or name. Example: db[value]
+	arg1				- (optional) use a secondary database, value is used as key.  Example: arg1[value]
 	bOpt				- define an optional variable to be passed to doUpdate. Example: button name or button ID.
+	func				- override with custom function
+	swatchFunc			- override with custom function
+	opacityFunc			- override with custom function
+	cancelFunc			- override with custom function
 --]]
 
-local function AddColor(self, lvl, text, value, bOpt)
+local function AddColor(self, lvl, text, value, arg1, bOpt, func, swatchFunc, opacityFunc, cancelFunc)
 	if not lvl then return end
 	if not text then return end
 	if not value then return end
 	
-	local db = self.db[value]
+	local db
+	if arg1 then
+		db = arg1[value]
+	else
+		db = self.db[value]
+	end
 	if not db then return end
 	local SetColor = function(item)
 		local colDB = _G[self:GetName()].db[UIDROPDOWNMENU_MENU_VALUE]
@@ -232,9 +242,11 @@ local function AddColor(self, lvl, text, value, bOpt)
 	self.info.hasColorSwatch = true
 	self.info.hasOpacity = 1
 	self.info.r, self.info.g, self.info.b, self.info.opacity = db.r, db.g, db.b, 1 - db.a
-	self.info.swatchFunc, self.info.opacityFunc, self.info.cancelFunc = SetColor, SetColor, SetColor
+	self.info.swatchFunc = swatchFunc or SetColor
+	self.info.opacityFunc = opacityFunc or SetColor
+	self.info.cancelFunc = cancelFunc or SetColor
 	self.info.value = value
-	self.info.func = UIDropDownMenuButton_OpenColorPicker
+	self.info.func = func or UIDropDownMenuButton_OpenColorPicker
 	AddButton(self, lvl, text, nil)
 end
 
