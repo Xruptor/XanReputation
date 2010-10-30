@@ -42,7 +42,7 @@
 		
 --]]
 
-local MAJOR, MINOR = "LibXMenu-1.0", 4
+local MAJOR, MINOR = "LibXMenu-1.0", 5
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
@@ -121,7 +121,7 @@ end
 	value				- menuList value, used in UIDROPDOWNMENU_MENU_VALUE when lvl > 1.
 --]]
 
-local function AddList(self, lvl, text, value)
+local function AddList(self, lvl, text, value, notCheckable)
 	if not lvl then return end
 	if not text then return end
 	if not value then return end
@@ -129,6 +129,12 @@ local function AddList(self, lvl, text, value)
 	self.info.value = value
 	self.info.hasArrow = true
 	self.info.func = HideCheck
+	if notCheckable ~= nil then
+		self.info.notCheckable = notCheckable
+	else
+		self.info.notCheckable = true
+	end
+	self.info.notCheckable = notCheckable or true
 	AddButton(self, lvl, text, 1)
 end
 
@@ -260,6 +266,7 @@ local function AddTitle(self, lvl, text)
 	if not lvl then return end
 	if not text then return end
 	self.info.isTitle = true
+	self.info.notCheckable = true
 	AddButton(self, lvl, text)
 end
 
@@ -272,6 +279,7 @@ end
 local function AddCloseButton(self, lvl, text)
 	if not lvl then return end
 	if not text then return end
+	self.info.notCheckable = true
 	self.info.func = function() CloseDropDownMenus() end
 	AddButton(self, lvl, text)
 end
