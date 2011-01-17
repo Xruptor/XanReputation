@@ -6,7 +6,7 @@ local levels = { FACTION_STANDING_LABEL1, FACTION_STANDING_LABEL2, FACTION_STAND
 local colors = { "8b0000", "ff1919", "ff8c00", "dddddd", "ffff00", "19e619", "4169e1", "9932cc", "67009a" }
 local GetFactionInfo, FACTION_INACTIVE = GetFactionInfo, FACTION_INACTIVE
 
-local f = CreateFrame("frame","XanReputation",UIParent)
+local f = CreateFrame("frame","xanReputation",UIParent)
 f:SetScript("OnEvent", function(self, event, ...) if self[event] then return self[event](self, event, ...) end end)
 
 ----------------------
@@ -26,32 +26,32 @@ function f:PLAYER_LOGIN()
 
 	--create the default frame and position it
 	self:CreateREP_Frame()
-	self:RestoreLayout("XanReputation")
+	self:RestoreLayout("xanReputation")
 	
 	self:UnregisterEvent("PLAYER_LOGIN")
 	self.PLAYER_LOGIN = nil
 	
 	SLASH_XANREPUTATION1 = "/xanrep";
-	SlashCmdList["XANREPUTATION"] = XanReputation_SlashCommand;
+	SlashCmdList["XANREPUTATION"] = xanReputation_SlashCommand;
 
-	local ver = GetAddOnMetadata("XanReputation","Version") or '1.0'
-	DEFAULT_CHAT_FRAME:AddMessage(string.format("|cFF99CC33%s|r [v|cFFDF2B2B%s|r] loaded:   /xanrep", "XanReputation", ver or "1.0"))
+	local ver = GetAddOnMetadata("xanReputation","Version") or '1.0'
+	DEFAULT_CHAT_FRAME:AddMessage(string.format("|cFF99CC33%s|r [v|cFFDF2B2B%s|r] loaded:   /xanrep", "xanReputation", ver or "1.0"))
 end
 
-function XanReputation_SlashCommand(cmd)
+function xanReputation_SlashCommand(cmd)
 
 	local a,b,c=strfind(cmd, "(%S+)"); --contiguous string of non-space characters
 	
 	if a then
 		if c and c:lower() == "reset" then
-			DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Frame position has been reset!");
-			XanReputation:ClearAllPoints()
-			XanReputation:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+			DEFAULT_CHAT_FRAME:AddMessage("xanReputation: Frame position has been reset!");
+			xanReputation:ClearAllPoints()
+			xanReputation:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
 			return true
 		end
 	end
 
-	DEFAULT_CHAT_FRAME:AddMessage("XanReputation");
+	DEFAULT_CHAT_FRAME:AddMessage("xanReputation");
 	DEFAULT_CHAT_FRAME:AddMessage("/xanrep reset - resets the frame position");
 
 end
@@ -122,7 +122,7 @@ function f:CreateREP_Frame()
 				GameTooltip:SetOwner(self, "ANCHOR_NONE")
 				GameTooltip:SetPoint(self:GetTipAnchor(self))
 				GameTooltip:ClearLines()
-				GameTooltip:AddLine("XanReputation")
+				GameTooltip:AddLine("xanReputation")
 
 				maxVal = maxVal - minVal
 				value = value - minVal
@@ -158,11 +158,11 @@ function f:UpdateREP_Frame()
 			maxVal = maxVal - minVal
 			value = value - minVal
 			local percent = ceil((value / maxVal) * 100)
-			getglobal("XanReputationText"):SetText(string.format("|cFF%s%d%%|r", colors[level], percent))
+			getglobal("xanReputationText"):SetText(string.format("|cFF%s%d%%|r", colors[level], percent))
 			return
 		end
 	end
-	getglobal("XanReputationText"):SetText("None")
+	getglobal("xanReputationText"):SetText("None")
 end
 
 function f:SaveLayout(frame)
@@ -231,13 +231,13 @@ function f:BackgroundToggle(switch)
 		
 		if not XanREP_DB.bgShown then
 			XanREP_DB.bgShown = true
-			DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Background Shown");
+			DEFAULT_CHAT_FRAME:AddMessage("xanReputation: Background Shown");
 		elseif XanREP_DB.bgShown then
 			XanREP_DB.bgShown = false
-			DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Background Hidden");
+			DEFAULT_CHAT_FRAME:AddMessage("xanReputation: Background Hidden");
 		else
 			XanREP_DB.bgShown = true
-			DEFAULT_CHAT_FRAME:AddMessage("XanReputation: Background Shown");
+			DEFAULT_CHAT_FRAME:AddMessage("xanReputation: Background Shown");
 		end
 	end
 
@@ -288,7 +288,7 @@ function f:SetupDropDown()
 		CloseDropDownMenus()
 	end
 
-	local dd1 = LibStub('LibXMenu-1.0'):New("XanReputation_DD", XanREP_DB)
+	local dd1 = LibStub('LibXMenu-1.0'):New("xanReputation_DD", XanREP_DB)
 	dd1.initialize = function(self, lvl)
 		if lvl == 1 then
 			self:AddList(lvl, "Reputation", "rep")
@@ -358,7 +358,7 @@ function f:SetupDropDown()
 			self:BackgroundToggle(true)
 			return
 		elseif bOpt and bOpt == 2 then
-			XanReputation:SetScale(XanREP_DB.scale)
+			xanReputation:SetScale(XanREP_DB.scale)
 			return
 		end
 		self:GetFactionWatched(true)
@@ -376,7 +376,7 @@ function SetWatchedFactionIndex(...)
 	org_SetWatchedFactionIndex(...)
 	XanREP_DB.factionWatched = GetFactionInfo(...)
 	XanREP_DB.factionIndex = ...
-	if XanReputation then XanReputation:UpdateREP_Frame() end
+	if xanReputation then xanReputation:UpdateREP_Frame() end
 end
 
 local factionUp = gsub(FACTION_STANDING_INCREASED:gsub("%%d", "([0-9]+)"), "%%s", "(.*)")
