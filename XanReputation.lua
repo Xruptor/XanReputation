@@ -19,7 +19,12 @@ function f:PLAYER_LOGIN()
 	if XanREP_DB.bgShown == nil then XanREP_DB.bgShown = true end
 	if XanREP_DB.scale == nil then XanREP_DB.scale = 1 end
 	if XanREP_DB.autoSwitch == nil then XanREP_DB.autoSwitch = true end
-
+	--check for old db
+	if XanREP_DB["XanReputation"] then
+		XanREP_DB["xanReputation"] = XanREP_DB["XanReputation"]
+		XanREP_DB["XanReputation"] = nil
+	end
+	
 	self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE")
 	self:RegisterEvent("CHAT_MSG_SYSTEM")
 	self:RegisterEvent("UPDATE_FACTION")
