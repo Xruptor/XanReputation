@@ -33,14 +33,14 @@ function f:PLAYER_LOGIN()
 	self:CreateREP_Frame()
 	self:RestoreLayout("xanReputation")
 	
-	self:UnregisterEvent("PLAYER_LOGIN")
-	self.PLAYER_LOGIN = nil
-	
 	SLASH_XANREPUTATION1 = "/xanrep";
 	SlashCmdList["XANREPUTATION"] = xanReputation_SlashCommand;
 
 	local ver = GetAddOnMetadata("xanReputation","Version") or '1.0'
 	DEFAULT_CHAT_FRAME:AddMessage(string.format("|cFF99CC33%s|r [v|cFFDF2B2B%s|r] loaded:   /xanrep", "xanReputation", ver or "1.0"))
+
+	self:UnregisterEvent("PLAYER_LOGIN")
+	self.PLAYER_LOGIN = nil
 end
 
 function xanReputation_SlashCommand(cmd)
