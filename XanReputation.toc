@@ -2,7 +2,7 @@
 ## Title: xanReputation
 ## Notes: A small window display current reputation xp
 ## Author: Xruptor
-## Version: 1.9.1
+## Version: 1.9.2
 ## SavedVariablesPerCharacter: XanREP_DB
 
 libs\LibStub.lua
