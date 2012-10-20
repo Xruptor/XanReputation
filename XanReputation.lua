@@ -97,6 +97,7 @@ function f:CreateREP_Frame()
 	g:SetJustifyH("LEFT")
 	g:SetPoint("CENTER",8,0)
 	g:SetText("?")
+	f.text = g
 
 	f:SetScript("OnMouseDown",function(self, button)
 		if not button then return end
@@ -265,6 +266,9 @@ function f:GetFactionWatched(sSwitch, faction)
 				if sSwitch then SetWatchedFactionIndex(i) end
 			end
 		end
+	else
+		f.text:SetText("?")
+		SetWatchedFactionIndex(0)
 	end
 	
 	XanREP_DB.factionCount = GetNumFactions()
@@ -345,7 +349,17 @@ function f:ShowDropDown(sFrame)
 				},  				
 			 },
 			 order = 20
-		  },             
+		  }, 
+		-- removeReputation = {
+			-- type = "execute",
+			-- name = "Remove Reputation",
+			-- desc = "Stop tracking the current Reputation",
+			-- func = function(self)
+				-- XanREP_DB.factionWatched = nil
+				-- f:GetFactionWatched(nil, nil)
+			-- end,
+			-- order = 30
+		-- },          
 		close = {
 			 type = "execute",
 			 name = "Close",
@@ -400,10 +414,16 @@ function f:ShowDropDown(sFrame)
 					desc = name,
 					values = tableValues,
 					order = parentOrder*10,
-					get = function(info) return optIndex end,
-					set = function(info, v) optIndex = v end
-					--XanREP_DB.factionWatched = nameSub
-					--f:GetFactionWatched(true)
+					get = function(info)
+						for z = 1, #info.option.values do
+							if info.option.values[z] == XanREP_DB.factionWatched then return z end
+						end
+						return 0
+					end,
+					set = function(info, v)
+						XanREP_DB.factionWatched = info.option.values[v]
+						f:GetFactionWatched(true)
+					end
 				}
 				
 				parentOrder = parentOrder + 1
@@ -416,6 +436,7 @@ function f:ShowDropDown(sFrame)
 	f.DD = dd1:OpenAce3Menu(t)
 	f.DD:SetClampedToScreen(true)
 	f.DD:SetAlpha(1.0)
+	f.DD:SetPoint("LEFT",sFrame,"RIGHT",0,0)
 	f.DD:Show()
 	
 	f:GetFactionWatched(true)
