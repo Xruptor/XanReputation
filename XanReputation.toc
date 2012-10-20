@@ -1,11 +1,11 @@
-## Interface: 40200
+## Interface: 50001
 ## Title: xanReputation
 ## Notes: A small window display current reputation xp
 ## Author: Xruptor
-## Version: 1.9.2
+## Version: 2.0
 ## SavedVariablesPerCharacter: XanREP_DB
 
 libs\LibStub.lua
-libs\LibXMenu-1.0.lua
+libs\LibDropdown-1.0.lua
 
 xanReputation.lua

@@ -99,11 +99,12 @@ function f:CreateREP_Frame()
 	g:SetText("?")
 
 	f:SetScript("OnMouseDown",function(self, button)
+		if not button then return end
 		if button == "LeftButton" and IsShiftKeyDown() then
 			self.isMoving = true
 			self:StartMoving();
 		elseif button == "RightButton" then
-			ToggleDropDownMenu(1, nil, self.DD, self, 0, 0)
+			self:ShowDropDown(self)
 	 	end
 	end)
 	f:SetScript("OnMouseUp",function()
@@ -273,90 +274,152 @@ end
 --         DropDown         --
 ------------------------------
 
-function f:SetupDropDown()
+local function Faded(self)
+	self:Release()
+end
 
-	--close the dropdown menu if shown
-	if f.DD and f.DD:IsShown() then
-		CloseDropDownMenus()
-	end
+local function FadeMenu(self)
+	local fadeInfo = {}
+	fadeInfo.mode = "OUT"
+	fadeInfo.timeToFade = 0.1
+	fadeInfo.finishedFunc = Faded
+	fadeInfo.finishedArg1 = self
+	UIFrameFade(self, fadeInfo)
+end
 
-	local dd1 = LibStub('LibXMenu-1.0'):New("xanReputation_DD", XanREP_DB)
-	dd1.initialize = function(self, lvl)
-		if lvl == 1 then
-			self:AddList(lvl, "Reputation", "rep")
-			self:AddList(lvl, "Settings", "settings")
-			self:AddCloseButton(lvl,  "Close")
-		elseif lvl and lvl > 1 then
-			local sub = UIDROPDOWNMENU_MENU_VALUE
-			if sub == "rep" then
-				for i = 1, GetNumFactions() do
-					local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(i)
-					if isHeader then
-						self:AddList(lvl, name, "rep2|"..name)
-					end
+function f:ShowDropDown(sFrame)
+
+	local dd1 = LibStub("LibDropdown-1.0")
+
+	local t = {
+	   type = "group",
+	   name = "group",
+	   desc = "group",
+	   args = {
+		reputation = {
+			 type = "group",
+			 name = "Reputation",
+			 desc = "Select a reputation",
+			 args = {
+				--to be filled by loop below
+			 },
+			 order = 10
+		  },
+		settings = {
+			 type = "group",
+			 name = "Settings",
+			 desc = "xanReputation settings",
+			 args = {
+				range = {
+					type = "range",
+					name = "Scale",
+					desc = "Change the scale size of xanReputation",
+					min = 1,
+					max = 2.6,
+					bigStep = 0.1,
+					get = function(info) return XanREP_DB.scale end,
+					set = function(info, v)
+						XanREP_DB.scale = v
+						xanReputation:SetScale(v)
+					end,
+					order = 10					
+				},
+				toggleBG = {
+					type = "toggle",
+					name = "Toggle background",
+					desc = "Toggle the xanReputation background",
+					get = function() return XanREP_DB.bgShown end,
+					set = function(info, v)
+						XanREP_DB.bgShown = v 
+						f:BackgroundToggle(true)
+					end,
+					order = 20
+				},
+				autoSwitchBG = {
+					type = "toggle",
+					name = "Auto Switch",
+					desc = "Auto switch reputation",
+					get = function() return XanREP_DB.autoSwitch end,
+					set = function(info, v) XanREP_DB.autoSwitch = v end,
+					order = 30
+				},  				
+			 },
+			 order = 20
+		  },             
+		close = {
+			 type = "execute",
+			 name = "Close",
+			 desc = "Close this menu",
+			 func = function(self) FadeMenu(f.DD) end,
+			 order = 1000
+		  }
+	   }
+	}
+		
+	--fill the reputation list
+	local parentOrder = 1
+	for i = 1, GetNumFactions() do
+		local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(i)
+		if isHeader then
+			--check if we have something first
+			local processChk = false
+			for q = 1, GetNumFactions() do
+				local nameSub, _, _, _, _, _, _, _, isHeaderSub = GetFactionInfo(q)
+				if isHeaderSub and nameSub == name then
+					boolD = true
+				elseif isHeaderSub and nameSub ~= name then
+					boolD = false
 				end
-			elseif strmatch(sub, "(%w+)|(.+)") == "rep2" then
-			
-				local _, cHeader = strmatch(sub, "(%w+)|(.+)") 
-				local t = {}
-				local q = {}
-
-				for i = 1, GetNumFactions() do
-					local name, showValue, level, minVal, maxVal, value, atWar, canBeAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(i)
-					if isHeader and name == cHeader then
+				if boolD and not isHeaderSub then
+					processChk = true
+					break
+				end
+			end
+		
+			if processChk then
+				--do the child rep names for the reputation parent
+				local boolD = false
+				local tableValues = {}
+				for q = 1, GetNumFactions() do
+					local nameSub, _, _, _, _, _, _, _, isHeaderSub = GetFactionInfo(q)
+					if isHeaderSub and nameSub == name then
 						boolD = true
-					elseif isHeader and name ~= cHeader then
+					elseif isHeaderSub and nameSub ~= name then
 						boolD = false
 					end
-					if boolD and not isHeader then
-						table.insert(t, name)
-						q[name] = level
+					if boolD and not isHeaderSub then
+						table.insert(tableValues,nameSub)
 					end
 				end
-
-				table.sort(t, function(a,b) return a < b end)
 				
-				if #t > 0 then
-					local starti = (30 * (lvl - 3)) + 1
-					local endi = (30 * (lvl - 2)) - 1
-
-					for i = starti, endi, 1 do
-						if not t[i] then break end
-						local status = "??"
-						if q[t[i]] then
-							status = string.format("|cFF%s%s|r", colors[q[t[i]]], levels[q[t[i]]])
-						end
-						self:AddSelect(lvl, string.format("%s      (%s)", t[i], status), t[i], "factionWatched")
-						if i == endi and t[i + 1] then
-							self:AddList(lvl, "More", sub)
-							break
-						end
-					end
-				end
-			elseif sub == "settings" then
-				self:AddList(lvl, "Scale", "scale")
-				self:AddToggle(lvl, "Toggle background", "bgShown", nil, nil, nil, 1)
-				self:AddToggle(lvl, "Auto switch reputation", "autoSwitch")
-			elseif sub == "scale" then
-				for i = 1, 2.6, 0.1 do
-					self:AddSelect(lvl, i, i, "scale", nil, nil, 2)
-				end
-			end	
+				--add to reputation parent
+				t.args.reputation.args[name] = 
+				{
+					type = "select",
+					name = name,
+					desc = name,
+					values = tableValues,
+					order = parentOrder*10,
+					get = function(info) return optIndex end,
+					set = function(info, v) optIndex = v end
+					--XanREP_DB.factionWatched = nameSub
+					--f:GetFactionWatched(true)
+				}
+				
+				parentOrder = parentOrder + 1
+						
+			end
 		end
 	end
-
-	dd1.doUpdate = function(bOpt)
-		if bOpt and bOpt == 1 then
-			self:BackgroundToggle(true)
-			return
-		elseif bOpt and bOpt == 2 then
-			xanReputation:SetScale(XanREP_DB.scale)
-			return
-		end
-		self:GetFactionWatched(true)
-	end
-
-	f.DD = dd1
+	
+	
+	f.DD = dd1:OpenAce3Menu(t)
+	f.DD:SetClampedToScreen(true)
+	f.DD:SetAlpha(1.0)
+	f.DD:Show()
+	
+	f:GetFactionWatched(true)
+	
 end
 
 ------------------------------
@@ -388,7 +451,6 @@ function f:CHAT_MSG_COMBAT_FACTION_CHANGE(event, msg)
 	if XanREP_DB.factionCount ~= GetNumFactions() then
 		--a new faction was added so lets update the display
 		XanREP_DB.factionCount = GetNumFactions()
-		f:SetupDropDown()
 	end
 	
 	if not decrease and XanREP_DB.autoSwitch then
@@ -410,7 +472,6 @@ function f:CHAT_MSG_SYSTEM(event, msg)
 	if XanREP_DB.factionCount ~= GetNumFactions() then
 		--a new faction was added so lets update the display
 		XanREP_DB.factionCount = GetNumFactions()
-		f:SetupDropDown()
 	end
 end
 
@@ -419,9 +480,6 @@ function f:UPDATE_FACTION()
 	
 	--setup startup faction information
 	self:GetFactionWatched(true)
-	
-	--do the dropdown
-	self:SetupDropDown()
 	
 	--do rep frame update
 	self:UpdateREP_Frame()
